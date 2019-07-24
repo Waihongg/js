@@ -232,8 +232,8 @@ dropbricks ()
     console.log('Dropping bricks');
     this.bricks.createMultiple({
         key: 'bricks',
-        repeat: 80,
-        setXY: { x: 0, y: Phaser.Math.Between(0, 200), stepX: Phaser.Math.Between(100, 400) }
+        repeat: 50,
+        setXY: { x: 200, y: Phaser.Math.Between(0, 200), stepX: Phaser.Math.Between(100, 400) }
     })
     this.cameras.main.shake(500);
 }
