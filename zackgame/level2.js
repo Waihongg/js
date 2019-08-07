@@ -1,4 +1,3 @@
-// static enemies
 class level2 extends Phaser.Scene {
 
     constructor ()
@@ -14,17 +13,17 @@ preload() {
     this.load.tilemapTiledJSON('map2', 'assets/lvl2jpn.json');
     
     this.load.spritesheet('tiles', 'assets/tiles64x64.png', {frameWidth: 64, frameHeight: 64});
-    this.load.spritesheet('player','assets/zack2.png', {frameWidth: 90, frameHeight:150} );
+    this.load.spritesheet('player','assets/zack2.png', {frameWidth: 100, frameHeight:150} );
 
-    this.load.image('bricks', 'assets/brick.png', { frameWidth: 43, frameHeight:58});
-    this.load.image('japan','assets/japan2.png');
+    this.load.image('bricks', 'assets/brick3.png', { frameWidth: 34, frameHeight:46});
+    this.load.image('japan','assets/japanfinal.png');
     this.load.image('life','assets/life2.png');
-    this.load.image('endpoint','assets/endpoint');
+    this.load.image('endpoint','assets/endpoint.png');
     this.load.audio('airplane','assets/airplane2.mp3');
     this.load.audio('hitbrick','assets/bricks.mp3');
     this.load.image('sky2','assets/sky2.3.png')
+    this.load.audio('bgm','assets/bgm3.mp3');
 }
-
 create() {
     
     this.sky = this.add.tileSprite(0, 0, game.config.width, game.config.height, "sky2");
@@ -37,8 +36,9 @@ create() {
    
     this.map = this.make.tilemap({key: 'map2'});
     this.hitSnd = this.sound.add('hitbrick');
-    this.apSnd = this.sound.add('airplane')
-    
+    this.apSnd = this.sound.add('airplane');
+    this.bgmSnd = this.sound.add('bgm');
+    this.bgmSnd.loop = true;
     // Must match tileSets name
    // var coinTiles = map.addTilesetImage('goldCoin');
 
@@ -121,7 +121,7 @@ create() {
     //this.physics.add.overlap(this.stars, this.bombs, this.removeBombs, null, this );
     this.physics.add.overlap(this.player, this.bricks, this.hitbricks, null, this );
 
-    this.add.text(0,560, 'Japan', { font: '24px Courier', fill: '#000000' }).setScrollFactor(0);
+    this.add.text(25,560, 'Japan_2', { font: '24px Helvetica', fill: 'white' }).setScrollFactor(0);
 
     // this text will show the score
     // this.lifeText = this.add.text(20, 40, 'LIFE : 3', {
@@ -138,7 +138,7 @@ create() {
             start: 0,
             end: 3
         }),
-        frameRate: 20,
+        frameRate: 10,
         repeat: -1
     });
 
@@ -148,7 +148,7 @@ create() {
             key: 'player',
             frame: 4
         }],
-        frameRate: 20,
+        frameRate: 10,
         repeat: false
     });
 
@@ -158,11 +158,12 @@ create() {
             start: 5,
             end: 8
         }),
-        frameRate: 20,
+        frameRate: 10,
         repeat: -1
     });
 
     this.cursors = this.input.keyboard.createCursorKeys();
+    this.space = this.input.keyboard.addKey('SPACE');
 
   // set bounds so the camera won't go outside the game world
   this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
@@ -171,6 +172,7 @@ create() {
 
   // set background color, so the sky is not black    
   this.cameras.main.setBackgroundColor('#ccccff');
+  
 
 }
 
@@ -202,6 +204,7 @@ hitbricks(player, bricks) {
         // delay 1 sec
         this.time.delayedCall(1000,function() {
             this.bricksCount = 3;
+            this.bgmSnd.stop();
             this.scene.restart();
         },[], this);
     }
@@ -235,13 +238,13 @@ dropbricks ()
         repeat: 50,
         setXY: { x: 200, y: Phaser.Math.Between(0, 200), stepX: Phaser.Math.Between(100, 400) }
     })
-    this.cameras.main.shake(500);
+    this.cameras.main.shake(200);
 }
 
 clearbricks() {
     console.log('Clearing bricks');    
     this.bricks.clear(true,true);
-    this.cameras.main.shake(400);
+    this.cameras.main.shake(100);
 }
 
 update() {
@@ -252,6 +255,11 @@ update() {
     // } else if ( this.bricksCount === 3) {
     //     this.life3.setVisible(false);
     // }
+    if ( this.player.x <= this.startPoint2.x ) {
+        console.log('Reached End, goto level3');
+        this.bgmSnd.play();
+       
+    }
 
     if (this.cursors.left.isDown)
     {
@@ -269,7 +277,7 @@ update() {
         this.player.anims.play('idle', true);
     }
     // jump 
-    if (this.cursors.up.isDown && this.player.body.onFloor())
+    if (this.space.isDown && this.player.body.onFloor())
     {
         this.player.body.setVelocityY(-350);        
     }
@@ -279,6 +287,7 @@ update() {
     // Check for reaching endPoint object
     if ( this.player.x >= this.endPoint2.x && this.player.y >= this.endPoint2.y ) {
         console.log('Reached End, goto level3');
+        this.bgmSnd.stop();
         this.apSnd.play();
         //this.cameras.main.shake(500);
         this.time.delayedCall(1000,function() {

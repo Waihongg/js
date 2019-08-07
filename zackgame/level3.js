@@ -18,17 +18,19 @@ preload() {
     //this.load.image('goldCoin', 'assets/goldCoin.png');
 
     //this.load.atlas('player', 'assets/this.player.png', 'assets/this.player.json');
-    this.load.spritesheet('player','assets/zack2.png', { frameWidth: 90, frameHeight: 150} );
+    this.load.spritesheet('player','assets/zack2.png', { frameWidth: 100, frameHeight: 150} );
 
 
     //this.load.image('star', 'assets/star.png');
-    this.load.image('thief', 'assets/thieves.png',{frameWidth:70, frameHeight: 90});
+    //this.load.image('thief', 'assets/thieves.png',{frameWidth:70, frameHeight: 90});
     this.load.image('endpoint','assets/endpoint.png');
     this.load.image('paris','assets/paris2.png');
     this.load.image('life','assets/life2.png');
     this.load.audio('airplane','assets/airplane2.mp3');
     this.load.audio('hitbrick','assets/bricks.mp3');
     this.load.image('sky3','assets/sky3.3.png');
+    this.load.audio('bgm','assets/bgm3.mp3');
+    this.load.spritesheet('thief','assets/theifss2.png',{frameWidth:73, frameHeight:111})
 
 }
 
@@ -42,6 +44,7 @@ create() {
     this.map = this.make.tilemap({key: 'map3'});
     this.hitSnd = this.sound.add('hitbrick');
     this.apSnd = this.sound.add('airplane');
+    this.bgmSnd = this.sound.add('bgm');
 
     
     // Must match tileSets name
@@ -69,7 +72,7 @@ create() {
     this.player.setBounce(0.1); // our this.player will bounce from items
     
     // small fix to our this.player images, we resize the physics body object slightly
-    this.player.body.setSize(this.player.width*0.9, this.player.height*0.9);
+    this.player.body.setSize(this.player.width*0.8, this.player.height*0.8);
     this.player.setCollideWorldBounds(true);
     this.platformLayer.setCollisionByProperty({collides:(true)}); // don't go out of the map  
 
@@ -91,6 +94,8 @@ create() {
     this.life1 = this.add.image(260,120, 'life').setScrollFactor(0);
     this.life2 = this.add.image(120,120,'life').setScrollFactor(0);
     this.life3 = this.add.image(190,120,'life').setScrollFactor(0);
+    
+   // this.thief.body.setSize(this.thief.width*0.9,this.thief.height*0.9);
     // Add random stars
     // this.stars = this.physics.add.group({
     //     key: 'star',
@@ -105,24 +110,15 @@ create() {
     // this.physics.add.overlap(this.player, this.stars,this.collectStars, null, this );
 
      // Add random bomb
-     this.thief = this.physics.add.group({
-        key: 'thief',
-        repeat: 3,
-        setXY: { x: 500, y: 0, stepX: Phaser.Math.Between(750, 750) }
-    });
 
-    this.timedEvent = this.time.addEvent({ delay: 2000, callback: this.moveLeft, callbackScope: this, loop: true });
-    this.timedEvent2 = this.time.addEvent({ delay: 4000, callback: this.moveRight, callbackScope: this, loop: true });
+
+     this.timedEvent = this.time.addEvent({ delay: 2000, callback: this.moveLeft, callbackScope: this, loop: true });
+     this.timedEvent2 = this.time.addEvent({ delay: 4000, callback: this.moveRight, callbackScope: this, loop: true });
        
 
     // Collide platform with stars
-    this.physics.add.collider(this.platformLayer, this.thief);
-    this.physics.add.collider(this.groundLayer, this.thief);
-
-    //this.physics.add.overlap(this.stars, this.bombs, this.removeBombs, null, this );
-    this.physics.add.overlap(this.player, this.thief, this.hitthief, null, this );
-
-    this.add.text(0,560, 'Paris', { font: '24px Arial', fill: '#000000' }).setScrollFactor(0);
+ 
+    this.add.text(25,560, 'Paris', { font: '24px Helvetica', fill: 'white' }).setScrollFactor(0);
 
     // this text will show the score
     // this.starText = this.add.text(20, 40, '0', {
@@ -136,10 +132,10 @@ create() {
     this.anims.create({
         key: 'thiefmove',
         frames: this.anims.generateFrameNumbers('thief', {
-            start: 0,
-            end: 3
+            start: 3,
+            end: 0
         }),
-        frameRate: 10,
+        frameRate: 5,
         repeat: -1
     });
 
@@ -172,8 +168,28 @@ create() {
         frameRate: 10,
         repeat: -1
     });
+// this.thief.setSize(this.thief.width*0.9, this.thief.height*0.9);
+// this.thief.setCollideWorldBounds(true);
+// this.platformLayer.setCollisionByProperty({collides:(true)});
+
+this.thief = this.physics.add.group({
+    key: 'thief',
+    repeat: 5,
+    setXY: { x: 300, y: 0, stepX: Phaser.Math.Between(750, 750) }
+});
+
+this.thief.children.iterate(ttt => {
+    ttt.play('thiefmove')
+  })
+
+this.physics.add.collider(this.platformLayer, this.thief);
+this.physics.add.collider(this.groundLayer, this.thief);
+
+//this.physics.add.overlap(this.stars, this.bombs, this.removeBombs, null, this );
+this.physics.add.overlap(this.player, this.thief, this.hitthief, null, this );
 
     this.cursors = this.input.keyboard.createCursorKeys();
+    this.space = this.input.keyboard.addKey('SPACE');
 
   // set bounds so the camera won't go outside the game world
   this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
@@ -223,9 +239,11 @@ hitthief(player,thief)
     }
     if ( this.thiefCount === 0 ) {
         this.cameras.main.shake(400);
-        this.thiefCount = 3;
+        
         // delay 1 sec
         this.time.delayedCall(1000,function() {
+            this.thiefCount = 3;
+            this.bgmSnd.stop();
             this.scene.restart();
         },[], this);
     }
@@ -258,7 +276,12 @@ moveRight(thief)
 
 
 update()
- {
+ {   if ( this.player.x <= this.startPoint3.x ) 
+    {
+        console.log('Reached End, game over');
+        this.bgmSnd.play();
+        //this.cameras.main.shake(500);
+    }
 
     if (this.cursors.left.isDown)
     {
@@ -276,7 +299,7 @@ update()
         this.player.anims.play('idle', true);
     }
     // jump 
-    if (this.cursors.up.isDown && this.player.body.onFloor())
+    if (this.space.isDown && this.player.body.onFloor())
     {
         this.player.body.setVelocityY(-350);        
     }
@@ -287,6 +310,7 @@ update()
     if ( this.player.x >= this.endPoint3.x && this.player.y >= this.endPoint3.y ) 
     {
         console.log('Reached End, game over');
+        this.bgmSnd.stop();
         this.apSnd.play();
         //this.cameras.main.shake(500);
         this.time.delayedCall(1000,function() {

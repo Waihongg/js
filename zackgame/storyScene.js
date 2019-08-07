@@ -6,7 +6,7 @@ class storyScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('story','assets/story2.png');
+        this.load.image('story','assets/story7.png');
     }
 
     create () {
@@ -19,12 +19,19 @@ class storyScene extends Phaser.Scene {
 
         //this.input.once('pointerdown', function(){
         var spaceDown = this.input.keyboard.addKey('SPACE');
+        var aDown = this.input.keyboard.addKey('A')
+
         
         spaceDown.on('down', function(){
         console.log("Spacebar pressed, goto story2Scene");
         this.scene.stop("storyScene");
         this.scene.start("level1");
         }, this );
+        aDown.on('down',function(){
+        this.scene.stop("storyScene");
+        this.scene.start("level3");
+        },this);
+        
 
     }
 

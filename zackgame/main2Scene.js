@@ -7,7 +7,7 @@ class main2Scene extends Phaser.Scene {
 
 
     preload() {
-        this.load.image('main2','assets/main3.png');
+        this.load.image('main2','assets/main22.png');
 
     }
 
